@@ -13,8 +13,12 @@ jwt = JWTManager()
 def create_app():
     app = Flask(__name__)
     
-    # Config
-    app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+    # MongoDB SSL Fix
+    mongo_uri = os.getenv("MONGO_URI", "")
+    if "mongodb+srv" in mongo_uri and "tlsAllowInvalidCertificates" not in mongo_uri:
+        mongo_uri += "&tlsAllowInvalidCertificates=true"
+    
+    app.config["MONGO_URI"] = mongo_uri
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
     app.config["JWT_REFRESH_SECRET_KEY"] = os.getenv(
         "JWT_REFRESH_SECRET", os.getenv("JWT_SECRET_KEY")
