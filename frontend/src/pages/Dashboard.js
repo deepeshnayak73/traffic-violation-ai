@@ -66,42 +66,53 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Violations Table */}
-      <div style={styles.tableContainer}>
-        <h3 style={styles.tableTitle}>Recent Violations</h3>
-        {violations.length === 0 ? (
-          <p style={styles.noData}>No violations found.</p>
-        ) : (
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Type</th>
-                <th style={styles.th}>Location</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {violations.map((v, i) => (
-                <tr key={i} style={styles.tr}>
-                  <td style={styles.td}>{v.violation_type}</td>
-                  <td style={styles.td}>{v.location || 'N/A'}</td>
-                  <td style={styles.td}>
-                    <span style={{
-                      ...styles.badge,
-                      backgroundColor: v.status === 'pending' ? '#ff4444' : '#00cc66'
-                    }}>
-                      {v.status}
-                    </span>
-                  </td>
-                  <td style={styles.td}>
-                    {v.detected_at ? new Date(v.detected_at).toLocaleDateString() : 'N/A'}
-                  </td>
+      {/* Live stream + violations */}
+      <div style={styles.mainContent}>
+        <div style={styles.streamContainer}>
+          <h3 style={styles.sectionTitle}>Live Camera Feed</h3>
+          <img
+            src="http://127.0.0.1:5000/api/stream"
+            alt="Live traffic camera"
+            style={styles.streamImage}
+          />
+        </div>
+
+        <div style={styles.tableContainer}>
+          <h3 style={styles.sectionTitle}>Violations</h3>
+          {violations.length === 0 ? (
+            <p style={styles.noData}>No violations found.</p>
+          ) : (
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Type</th>
+                  <th style={styles.th}>Location</th>
+                  <th style={styles.th}>Status</th>
+                  <th style={styles.th}>Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody>
+                {violations.map((v) => (
+                  <tr key={v._id} style={styles.tr}>
+                    <td style={styles.td}>{v.violation_type}</td>
+                    <td style={styles.td}>{v.location || 'N/A'}</td>
+                    <td style={styles.td}>
+                      <span style={{
+                        ...styles.badge,
+                        backgroundColor: v.status === 'pending' ? '#ff4444' : '#00cc66'
+                      }}>
+                        {v.status}
+                      </span>
+                    </td>
+                    <td style={styles.td}>
+                      {v.detected_at ? new Date(v.detected_at).toLocaleString() : 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -121,8 +132,35 @@ const styles = {
     textAlign: 'center', flex: 1, maxWidth: '200px' },
   cardNum: { color: '#00d4ff', fontSize: '36px', margin: '0 0 8px 0' },
   cardLabel: { color: '#888', margin: 0 },
-  tableContainer: { margin: '0 32px', backgroundColor: '#16213e', borderRadius: '12px', padding: '24px' },
-  tableTitle: { color: '#00d4ff', marginTop: 0 },
+  mainContent: {
+    display: 'flex',
+    gap: '24px',
+    padding: '0 32px 32px',
+    alignItems: 'flex-start',
+    flexWrap: 'wrap',
+  },
+  streamContainer: {
+    flex: '1 1 480px',
+    backgroundColor: '#16213e',
+    borderRadius: '12px',
+    padding: '24px',
+  },
+  streamImage: {
+    width: '100%',
+    maxWidth: '640px',
+    borderRadius: '8px',
+    border: '2px solid #0f3460',
+    display: 'block',
+    backgroundColor: '#000',
+  },
+  sectionTitle: { color: '#00d4ff', marginTop: 0, marginBottom: '16px' },
+  tableContainer: {
+    flex: '1 1 400px',
+    backgroundColor: '#16213e',
+    borderRadius: '12px',
+    padding: '24px',
+    overflowX: 'auto',
+  },
   noData: { color: '#888', textAlign: 'center' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { backgroundColor: '#0f3460', color: '#00d4ff', padding: '12px', textAlign: 'left' },

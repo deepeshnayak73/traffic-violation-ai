@@ -20,7 +20,7 @@ def create_app():
     # Extensions
     mongo.init_app(app)
     jwt.init_app(app)
-    CORS(app, origins=os.getenv("CORS_ORIGINS"))
+    CORS(app, resources={r"/api/*": {"origins": "*"}})
     
     # Routes
     from app.routes.auth import auth_bp
