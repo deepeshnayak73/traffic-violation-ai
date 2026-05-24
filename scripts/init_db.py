@@ -6,13 +6,19 @@ import sys
 from datetime import datetime, timedelta
 
 import bcrypt
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
 # Project root on path
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/traffic_violation_db")
+ENV_PATH = os.path.join(ROOT, "backend", ".env")
+load_dotenv(ENV_PATH)
+
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    raise ValueError("MONGO_URI is not set. Define it in backend/.env")
 ADMIN_EMAIL = os.getenv("INIT_ADMIN_EMAIL", "admin@traffic.ai")
 ADMIN_PASSWORD = os.getenv("INIT_ADMIN_PASSWORD", "admin123")
 ADMIN_USERNAME = os.getenv("INIT_ADMIN_USERNAME", "admin")
