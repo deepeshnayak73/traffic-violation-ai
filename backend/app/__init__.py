@@ -16,6 +16,9 @@ def create_app():
     # Config
     app.config["MONGO_URI"] = os.getenv("MONGO_URI")
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+    app.config["JWT_REFRESH_SECRET_KEY"] = os.getenv(
+        "JWT_REFRESH_SECRET", os.getenv("JWT_SECRET_KEY")
+    )
     
     # Extensions
     mongo.init_app(app)
@@ -26,9 +29,13 @@ def create_app():
     from app.routes.auth import auth_bp
     from app.routes.violations import violations_bp
     from app.routes.stream import stream_bp
+    from app.routes.analytics import analytics_bp
+    from app.routes.cameras import cameras_bp
     
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(violations_bp, url_prefix="/api/violations")
     app.register_blueprint(stream_bp, url_prefix="/api")
+    app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
+    app.register_blueprint(cameras_bp, url_prefix="/api/cameras")
     
     return app

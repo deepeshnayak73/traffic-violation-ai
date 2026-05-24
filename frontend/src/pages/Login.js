@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('http://127.0.0.1:5000/api/auth/login', {
-        email,
-        password
-      });
-      localStorage.setItem('token', res.data.access_token);
-      localStorage.setItem('role', res.data.role);
-      localStorage.setItem('username', res.data.username);
-      window.location.href = '/dashboard';
+      await login(email, password);
+      navigate('/dashboard');
     } catch (err) {
       setError('Invalid email or password!');
     }

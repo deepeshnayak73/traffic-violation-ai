@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import AppLayout from '../components/AppLayout';
+import api from '../services/api';
 
 function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [violations, setViolations] = useState([]);
-  const username = localStorage.getItem('username');
-  const token = localStorage.getItem('token');
 
   useEffect(() => {
     fetchSummary();
@@ -14,9 +13,7 @@ function Dashboard() {
 
   const fetchSummary = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:5000/api/violations/summary', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/violations/summary');
       setSummary(res.data);
     } catch (err) {
       console.error(err);
@@ -25,32 +22,15 @@ function Dashboard() {
 
   const fetchViolations = async () => {
     try {
-      const res = await axios.get('http://127.0.0.1:5000/api/violations/', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await api.get('/violations/', { params: { limit: 10 } });
       setViolations(res.data.violations);
     } catch (err) {
       console.error(err);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/login';
-  };
-
   return (
-    <div style={styles.container}>
-      {/* Navbar */}
-      <div style={styles.navbar}>
-        <h2 style={styles.navTitle}>🚦 Traffic Violation AI</h2>
-        <div style={styles.navRight}>
-          <span style={styles.welcome}>👤 {username}</span>
-          <button style={styles.logoutBtn} onClick={handleLogout}>Logout</button>
-        </div>
-      </div>
-
-      {/* Summary Cards */}
+    <AppLayout>
       <div style={styles.cardRow}>
         <div style={styles.card}>
           <h3 style={styles.cardNum}>{summary?.total_violations ?? '...'}</h3>
@@ -114,20 +94,12 @@ function Dashboard() {
           )}
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
 
 const styles = {
-  container: { minHeight: '100vh', backgroundColor: '#1a1a2e', color: '#fff' },
-  navbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    backgroundColor: '#16213e', padding: '16px 32px', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' },
-  navTitle: { color: '#00d4ff', margin: 0 },
-  navRight: { display: 'flex', alignItems: 'center', gap: '16px' },
-  welcome: { color: '#aaa' },
-  logoutBtn: { padding: '8px 16px', backgroundColor: '#ff4444', color: '#fff',
-    border: 'none', borderRadius: '6px', cursor: 'pointer' },
-  cardRow: { display: 'flex', gap: '24px', padding: '32px', justifyContent: 'center' },
+  cardRow: { display: 'flex', gap: '24px', padding: '8px 0 32px', justifyContent: 'center' },
   card: { backgroundColor: '#16213e', padding: '24px 40px', borderRadius: '12px',
     textAlign: 'center', flex: 1, maxWidth: '200px' },
   cardNum: { color: '#00d4ff', fontSize: '36px', margin: '0 0 8px 0' },
@@ -135,7 +107,6 @@ const styles = {
   mainContent: {
     display: 'flex',
     gap: '24px',
-    padding: '0 32px 32px',
     alignItems: 'flex-start',
     flexWrap: 'wrap',
   },

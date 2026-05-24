@@ -13,12 +13,24 @@ def get_violations():
     limit = int(request.args.get("limit", 10))
     violation_type = request.args.get("type")
     status = request.args.get("status")
+    from_date = request.args.get("from")
+    to_date = request.args.get("to")
 
     query = {}
     if violation_type:
         query["violation_type"] = violation_type
     if status:
         query["status"] = status
+    if from_date or to_date:
+        date_filter = {}
+        if from_date:
+            date_filter["$gte"] = datetime.fromisoformat(from_date)
+        if to_date:
+            end = datetime.fromisoformat(to_date).replace(
+                hour=23, minute=59, second=59, microsecond=999999
+            )
+            date_filter["$lte"] = end
+        query["detected_at"] = date_filter
 
     skip = (page - 1) * limit
     violations = list(mongo.db.violations.find(query).skip(skip).limit(limit))
