@@ -1,17 +1,47 @@
+from datetime import datetime, timedelta
+
 from flask import Blueprint, Response
 import cv2
 import sys
 import os
 
-# Correct ai folder path
-sys.path.insert(0, r'D:\traffic-violation-ai\ai')
+from app import mongo
+
+AI_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "ai"))
+sys.path.insert(0, AI_DIR)
 
 from detector import ViolationDetector
 from violation_rules import ViolationRules
 
-stream_bp = Blueprint('stream', __name__)
+stream_bp = Blueprint("stream", __name__)
 detector = ViolationDetector()
 rules = ViolationRules()
+
+STREAM_LOCATION = os.getenv("STREAM_LOCATION", "Live Camera")
+SAVE_COOLDOWN = timedelta(seconds=int(os.getenv("VIOLATION_SAVE_COOLDOWN", "5")))
+_last_saved = {}
+
+
+def save_violation(violation):
+    """Persist a detected violation to MongoDB (with per-type cooldown)."""
+    violation_type = violation.get("type")
+    if not violation_type:
+        return
+
+    now = datetime.utcnow()
+    last = _last_saved.get(violation_type)
+    if last and now - last < SAVE_COOLDOWN:
+        return
+
+    mongo.db.violations.insert_one({
+        "violation_type": violation_type,
+        "confidence_score": violation.get("confidence"),
+        "location": STREAM_LOCATION,
+        "detected_at": now,
+        "status": "pending",
+    })
+    _last_saved[violation_type] = now
+
 
 def generate_frames():
     cap = cv2.VideoCapture(0)
@@ -23,6 +53,10 @@ def generate_frames():
         detections = detector.detect_frame(frame)
         violations = detector.check_violations(detections)
         formatted = [rules.format_violation(v) for v in violations]
+
+        for violation in formatted:
+            save_violation(violation)
+
         annotated = detector.annotate_frame(frame, detections, violations)
 
         _, buffer = cv2.imencode('.jpg', annotated)
