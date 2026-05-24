@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ function Signup() {
     }
 
     try {
-      await axios.post('http://127.0.0.1:5000/api/auth/register', formData);
+      await api.post('/auth/register', formData);
       setSuccess('Account ban gaya! Ab login karo 🎉');
       setTimeout(() => {
         window.location.href = '/login';
