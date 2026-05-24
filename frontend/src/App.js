@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import ViolationsLog from './pages/ViolationsLog';
 import Analytics from './pages/Analytics';
 import CameraManagement from './pages/CameraManagement';
+import UserManagement from './pages/UserManagement';
+import ViolationDetail from './pages/ViolationDetail';
 
 function Unauthorized() {
   return (
@@ -53,6 +55,22 @@ function App() {
             element={
               <ProtectedRoute roles={['admin', 'officer', 'viewer']}>
                 <CameraManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <UserManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/violations/:id"
+            element={
+              <ProtectedRoute roles={['admin', 'officer', 'viewer']}>
+                <ViolationDetail />
               </ProtectedRoute>
             }
           />

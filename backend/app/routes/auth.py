@@ -1,9 +1,13 @@
-from flask import Blueprint, request, jsonify
+from datetime import datetime
+
+from bson import ObjectId
+from flask import Blueprint, jsonify, request
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
-    jwt_required,
+    get_jwt,
     get_jwt_identity,
+    jwt_required,
 )
 from app import mongo
 import bcrypt
@@ -51,6 +55,9 @@ def login():
     if not bcrypt.checkpw(password.encode("utf-8"), user["password_hash"]):
         return jsonify({"error": "Invalid credentials"}), 401
 
+    if not user.get("is_active", True):
+        return jsonify({"error": "Account is deactivated"}), 403
+
     access_token = create_access_token(identity=str(user["_id"]))
     refresh_token = create_refresh_token(identity=str(user["_id"]))
 
@@ -66,8 +73,40 @@ def login():
 @jwt_required(refresh=True)
 def refresh():
     user_id = get_jwt_identity()
+    user = mongo.db.users.find_one({"_id": ObjectId(user_id)})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    if not user.get("is_active", True):
+        return jsonify({"error": "Account is deactivated"}), 403
+
     access_token = create_access_token(identity=user_id)
     return jsonify({"access_token": access_token}), 200
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    claims = get_jwt()
+    jti = claims.get("jti")
+    exp = claims.get("exp")
+
+    if jti:
+        mongo.db.revoked_tokens.update_one(
+            {"jti": jti},
+            {
+                "$set": {
+                    "jti": jti,
+                    "user_id": get_jwt_identity(),
+                    "revoked_at": datetime.utcnow(),
+                    "expires_at": datetime.utcfromtimestamp(exp) if exp else None,
+                }
+            },
+            upsert=True,
+        )
+
+    return jsonify({"message": "Logged out successfully"}), 200
 
 
 @auth_bp.route("/me", methods=["GET"])

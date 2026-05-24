@@ -72,7 +72,12 @@ export function AuthProvider({ children }) {
     return profile;
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Clear local session even if server logout fails
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('refresh_token');
     localStorage.removeItem('username');

@@ -1,16 +1,11 @@
 import cv2
 import numpy as np
-from ultralytics import YOLO
-import os
+
+from model_loader import load_yolo_model
 
 class ViolationDetector:
     def __init__(self, model_path=None):
-        # YOLOv8 nano model use karenge — lightweight hai
-        if model_path and os.path.exists(model_path):
-            self.model = YOLO(model_path)
-        else:
-            # Pretrained model automatically download hoga
-            self.model = YOLO("yolov8n.pt")
+        self.model = load_yolo_model(model_path)
         
         self.confidence_threshold = 0.75
         

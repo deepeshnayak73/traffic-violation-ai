@@ -1,8 +1,13 @@
-from flask import Blueprint, request, jsonify
+import os
+
+from flask import Blueprint, jsonify, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import mongo
 from bson import ObjectId
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 violations_bp = Blueprint("violations", __name__)
 
@@ -56,6 +61,31 @@ def get_violation(id):
         return jsonify({"error": "Violation not found"}), 404
     violation["_id"] = str(violation["_id"])
     return jsonify(violation), 200
+
+
+@violations_bp.route("/<id>/frame", methods=["GET"])
+@jwt_required()
+def get_violation_frame(id):
+    violation = mongo.db.violations.find_one({"_id": ObjectId(id)})
+    if not violation:
+        return jsonify({"error": "Violation not found"}), 404
+
+    frame_path = violation.get("frame_path")
+    if not frame_path:
+        return jsonify({"error": "No frame snapshot for this violation"}), 404
+
+    base_dir = os.getenv("FRAME_STORAGE_PATH", "../data/frames")
+    if not os.path.isabs(base_dir):
+        base_dir = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", base_dir)
+        )
+
+    full_path = frame_path if os.path.isabs(frame_path) else os.path.join(base_dir, frame_path)
+
+    if not os.path.isfile(full_path):
+        return jsonify({"error": "Frame file not found"}), 404
+
+    return send_file(full_path, mimetype="image/jpeg")
 
 
 @violations_bp.route("/<id>/status", methods=["PATCH"])

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import AppLayout from '../components/AppLayout';
 import api from '../services/api';
 
@@ -138,6 +139,7 @@ function ViolationsLog() {
                   <th style={styles.th}>Status</th>
                   <th style={styles.th}>Detected at</th>
                   <th style={styles.th}>Confidence</th>
+                  <th style={styles.th}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -155,6 +157,9 @@ function ViolationsLog() {
                     </td>
                     <td style={styles.td}>
                       {v.confidence != null ? `${(v.confidence * 100).toFixed(1)}%` : '—'}
+                    </td>
+                    <td style={styles.td}>
+                      <Link to={`/violations/${v._id}`} style={styles.viewLink}>View</Link>
                     </td>
                   </tr>
                 ))}
@@ -243,6 +248,7 @@ const styles = {
     marginTop: '24px',
   },
   pageInfo: { color: '#aaa' },
+  viewLink: { color: '#00d4ff', textDecoration: 'none' },
 };
 
 export default ViolationsLog;

@@ -31,11 +31,13 @@ def create_app():
     from app.routes.stream import stream_bp
     from app.routes.analytics import analytics_bp
     from app.routes.cameras import cameras_bp
+    from app.routes.users import users_bp
     
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(violations_bp, url_prefix="/api/violations")
     app.register_blueprint(stream_bp, url_prefix="/api")
     app.register_blueprint(analytics_bp, url_prefix="/api/analytics")
     app.register_blueprint(cameras_bp, url_prefix="/api/cameras")
+    app.register_blueprint(users_bp, url_prefix="/api/users")
     
     return app

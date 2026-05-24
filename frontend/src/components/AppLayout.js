@@ -7,10 +7,11 @@ const NAV_ITEMS = [
   { path: '/violations', label: 'Violations' },
   { path: '/analytics', label: 'Analytics' },
   { path: '/cameras', label: 'Cameras' },
+  { path: '/users', label: 'Users', roles: ['admin'] },
 ];
 
 function AppLayout({ children }) {
-  const { username, logout } = useAuth();
+  const { username, logout, hasRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -26,13 +27,18 @@ function AppLayout({ children }) {
           <h2 style={styles.navTitle}>🚦 Traffic Violation AI</h2>
         </Link>
         <nav style={styles.navLinks} aria-label="Main navigation">
-          {NAV_ITEMS.map((item) => (
+          {NAV_ITEMS.filter(
+            (item) => !item.roles || hasRole(...item.roles)
+          ).map((item) => (
             <Link
               key={item.path}
               to={item.path}
               style={{
                 ...styles.navLink,
-                ...(location.pathname === item.path ? styles.navLinkActive : {}),
+                ...(location.pathname === item.path ||
+                (item.path === '/violations' && location.pathname.startsWith('/violations/'))
+                  ? styles.navLinkActive
+                  : {}),
               }}
             >
               {item.label}
