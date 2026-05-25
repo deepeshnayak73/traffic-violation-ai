@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import AppLayout from '../components/AppLayout';
 import api from '../services/api';
 
-const STREAM_URL = process.env.REACT_APP_API_URL
-  ? process.env.REACT_APP_API_URL.replace('/api', '') + '/api/stream'
-  : 'http://127.0.0.1:5000/api/stream';
+const STREAM_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://127.0.0.1:10000/api/stream'
+  : 'https://traffic-violation-ai-guwr.onrender.com/api/stream';
 
 function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [violations, setViolations] = useState([]);
+  const [cameraError, setCameraError] = useState(false);
 
   useEffect(() => {
     fetchSummary();
@@ -41,7 +42,12 @@ function Dashboard() {
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
     try {
-      const date = new Date(dateStr);
+      let date;
+      if (typeof dateStr === 'object' && dateStr.$date) {
+        date = new Date(dateStr.$date);
+      } else {
+        date = new Date(dateStr);
+      }
       if (isNaN(date.getTime())) return 'N/A';
       return date.toLocaleString('en-IN', {
         day: '2-digit', month: '2-digit', year: 'numeric',
@@ -79,18 +85,18 @@ function Dashboard() {
       <div style={styles.mainContent}>
         <div style={styles.streamContainer}>
           <h3 style={styles.sectionTitle}>Live Camera Feed</h3>
-          <img
-            src={STREAM_URL}
-            alt="Live traffic camera"
-            style={styles.streamImage}
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.nextSibling.style.display = 'flex';
-            }}
-          />
-          <div style={styles.cameraError}>
-            📷 Camera feed unavailable
-          </div>
+          {!cameraError ? (
+            <img
+              src={STREAM_URL}
+              alt="Live traffic camera"
+              style={styles.streamImage}
+              onError={() => setCameraError(true)}
+            />
+          ) : (
+            <div style={styles.cameraError}>
+              📷 Camera feed unavailable — Backend start karo
+            </div>
+          )}
         </div>
 
         <div style={styles.tableContainer}>
@@ -142,8 +148,8 @@ const styles = {
   streamContainer: { flex: '1 1 480px', backgroundColor: '#16213e', borderRadius: '12px', padding: '24px' },
   streamImage: { width: '100%', maxWidth: '640px', borderRadius: '8px',
     border: '2px solid #0f3460', display: 'block', backgroundColor: '#000' },
-  cameraError: { display: 'none', alignItems: 'center', justifyContent: 'center',
-    height: '200px', color: '#888', fontSize: '18px', backgroundColor: '#0f3460',
+  cameraError: { display: 'flex', alignItems: 'center', justifyContent: 'center',
+    height: '200px', color: '#888', fontSize: '16px', backgroundColor: '#0f3460',
     borderRadius: '8px' },
   sectionTitle: { color: '#00d4ff', marginTop: 0, marginBottom: '16px' },
   tableContainer: { flex: '1 1 400px', backgroundColor: '#16213e', borderRadius: '12px',
