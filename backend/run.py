@@ -1,13 +1,15 @@
 import os
+import matplotlib
+matplotlib.use('Agg')  # Font cache issue fix
 
 from app import create_app
 
 app = create_app()
 
-# Production: gunicorn --bind 0.0.0.0:$PORT app:app --chdir backend
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    flask_env = os.environ.get("FLASK_ENV", "development").lower()
-    debug = flask_env != "production"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
