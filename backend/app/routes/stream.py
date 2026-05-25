@@ -17,6 +17,7 @@ rules = ViolationRules()
 
 STREAM_LOCATION = os.getenv("STREAM_LOCATION", "Live Camera")
 SAVE_COOLDOWN = timedelta(seconds=int(os.getenv("VIOLATION_SAVE_COOLDOWN", "5")))
+MOBILE_CAM_URL = os.getenv("MOBILE_CAM_URL", "http://192.168.29.78:8080/video")
 _last_saved = {}
 
 
@@ -42,7 +43,12 @@ def save_violation(violation):
 
 
 def generate_frames():
-    cap = cv2.VideoCapture(0)
+    # Pehle mobile camera try karo, fail hone par laptop webcam use karo
+    cap = cv2.VideoCapture(MOBILE_CAM_URL)
+    if not cap.isOpened():
+        print("Mobile camera not available, using laptop webcam...")
+        cap = cv2.VideoCapture(0)
+
     while True:
         ret, frame = cap.read()
         if not ret:
