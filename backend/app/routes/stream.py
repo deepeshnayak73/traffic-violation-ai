@@ -1,10 +1,8 @@
 from datetime import datetime, timedelta
-
 from flask import Blueprint, Response
 import cv2
 import sys
 import os
-
 from app import mongo
 
 AI_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "ai"))
@@ -23,7 +21,6 @@ _last_saved = {}
 
 
 def save_violation(violation):
-    """Persist a detected violation to MongoDB (with per-type cooldown)."""
     violation_type = violation.get("type")
     if not violation_type:
         return
@@ -37,8 +34,9 @@ def save_violation(violation):
         "violation_type": violation_type,
         "confidence_score": violation.get("confidence"),
         "location": STREAM_LOCATION,
-        "detected_at": now,
+        "detected_at": now.isoformat() + "Z",
         "status": "pending",
+        "created_at": now.isoformat() + "Z",
     })
     _last_saved[violation_type] = now
 
@@ -64,6 +62,7 @@ def generate_frames():
 
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+
 
 @stream_bp.route('/stream')
 def video_stream():
