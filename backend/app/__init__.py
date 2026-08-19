@@ -40,6 +40,15 @@ def create_app():
     app.register_blueprint(cameras_bp, url_prefix="/api/cameras")
     app.register_blueprint(users_bp, url_prefix="/api/users")
     
+    # Root route — health check
+    @app.route('/')
+    def home():
+        return {
+            "status": "ok",
+            "service": "Traffic Violation Detection API",
+            "version": "1.0"
+        }, 200
+    
     return app
 
 
